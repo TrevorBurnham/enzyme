@@ -3050,6 +3050,51 @@ describe('shallow', () => {
         ]);
       });
 
+      it('calls componentDidUpdate when componentWillReceiveProps sets state', () => {
+        const spy = sinon.spy();
+
+        class Foo extends React.Component {
+          constructor(props) {
+            super(props);
+            this.state = {
+              count: 0,
+            };
+          }
+
+          componentWillReceiveProps(nextProps) {
+            spy('componentWillReceiveProps', this.props, nextProps);
+            this.setState({ count: 1 })
+          }
+
+          componentDidUpdate(prevProps) {
+            spy('componentDidUpdate', prevProps, this.props);
+          }
+
+          render() {
+            return (
+              <div />
+            );
+          }
+        }
+
+        const wrapper = shallow(<Foo a="a" b="b" />);
+
+        wrapper.setProps({ b: 'c', d: 'e' });
+
+        expect(spy.args).to.deep.equal([
+          [
+            'componentWillReceiveProps',
+            { a: 'a', b: 'b' },
+            { a: 'a', b: 'c', d: 'e' },
+          ],
+          [
+            'componentDidUpdate',
+            { a: 'a', b: 'b' },
+            { a: 'a', b: 'c', d: 'e' },
+          ],
+        ]);
+      });
+
       it('cancels rendering when Component returns false in shouldComponentUpdate', () => {
         const spy = sinon.spy();
 
